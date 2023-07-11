@@ -22,7 +22,8 @@ help() {
  -e, --exponent   Use exponents instead of powers
  -n, --no-color   No color mode
 
-Controls: wasd, hjkl, arrow keys, 8462 & ENTER
+Movement: wasd, hjkl, arrow keys, 8462 & ENTER
+Reset: r & ENTER
 Press a key for a direction and ENTER
 You can press multiple keys,
 but only the last pressed key is used'
@@ -568,62 +569,72 @@ it can be replaced with another rng file'
 	exit 1
 fi
 
-setup_terminal
+main() {
+	setup_terminal
 
-score=0
-set $(init)
-print "$score" "$@"
-
-# main loop
-moves=0
-while read -r input; do
-
-	# "${input%?}" removes last char
-	# "${input#"${input%?}"}" just keeps last char
-	case "${input#"${input%?}"}" in
-		w | A | k | 8)
-			set $(move_up "$@")
-			score="$((score + $1))"
-			shift
-			;;
-		a | D | h | 4)
-			set $(move_left "$@")
-			score="$((score + $1))"
-			shift
-			;;
-		s | B | j | 2)
-			set $(move_down "$@")
-			score="$((score + $1))"
-			shift
-			;;
-		d | C | l | 6)
-			set $(move_right "$@")
-			score="$((score + $1))"
-			shift
-			;;
-		r)
-			score=0
-			set $(init)
-			;;
-		q)
-			exit_program "$score" "$@"
-			;;
-		*)
-			clean_term
-			continue
-			;;
-	esac
-
-	clean_term
-
-	set $(populate_tile "$@")
+	score=0
+	set $(init)
 	print "$score" "$@"
-	moves="$((moves + 1))"
 
-	# end game
-	return_vars=$(check_game_state "$@")
-	if [ "${#return_vars}" -ne 0 ]; then
-		echo "$return_vars"
-		exit_program "$score" "$@"
-	fi
-done
+	moves=0
+	while read -r input; do
+
+		# "${input%?}" removes last char
+		# "${input#"${input%?}"}" just keeps last char
+		case "${input#"${input%?}"}" in
+			w | A | k | 8)
+				set $(move_up "$@")
+				score="$((score + $1))"
+				shift
+				;;
+			a | D | h | 4)
+				set $(move_left "$@")
+				score="$((score + $1))"
+				shift
+				;;
+			s | B | j | 2)
+				set $(move_down "$@")
+				score="$((score + $1))"
+				shift
+				;;
+			d | C | l | 6)
+				set $(move_right "$@")
+				score="$((score + $1))"
+				shift
+				;;
+			r)
+				setup_terminal
+
+				score=0
+				set $(init)
+				print "$score" "$@"
+
+				moves=0
+				continue
+				;;
+			q)
+				exit_program "$score" "$@"
+				;;
+			*)
+				clean_term
+				continue
+				;;
+		esac
+
+		clean_term
+
+		set $(populate_tile "$@")
+		print "$score" "$@"
+		moves="$((moves + 1))"
+
+		# end game
+		return_vars=$(check_game_state "$@")
+		if [ "${#return_vars}" -ne 0 ]; then
+			echo "$return_vars"
+			#~ echo "moves: $moves"
+			exit_program "$score" "$@"
+		fi
+	done
+}
+
+main
