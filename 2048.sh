@@ -603,7 +603,14 @@ main() {
 				shift
 				;;
 			r)
-				main
+				setup_terminal
+
+				score=0
+				set $(init)
+				print "$score" "$@"
+
+				moves=0
+				continue
 				;;
 			q)
 				exit_program "$score" "$@"
