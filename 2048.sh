@@ -109,11 +109,11 @@ populate_tile() {
 	fi
 
 	# calculate which array element to populate
-	pos="$(($(rand 7) + 1))"
+	pos="$(($(rand 15) + 1))"
 
 	# if we selected an non-empty tile, do it again until we select an empty one
 	while eval test \${$pos} -ne 0; do
-		pos="$(($(rand 7) + 1))"
+		pos="$(($(rand 15) + 1))"
 	done
 
 	# select value, 2 or 4
