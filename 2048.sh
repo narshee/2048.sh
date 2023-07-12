@@ -48,17 +48,15 @@ exit_program() {
 }
 
 rand() {
-	# rand 2
-	# max is rand 3
+	# rand 3
+	# "$1" must be (2^d)-1, so all digits are 1 in binary
 	# give random number from 0 to "$1"
-	# idk why it only works up to 3
 	# this is actually quite good & fast. didn't think it could be elegant
 
 	# /dev/random is not posix
 	read -r x < /dev/random
 
 	# ${#x} # number of bytes read from /dev/random
-	# fun fact: read does not read \0
 	echo "$((${#x} & $1))"
 }
 
@@ -111,12 +109,11 @@ populate_tile() {
 	fi
 
 	# calculate which array element to populate
-	#         row             col
-	pos="$(($(rand 3) * 4 + $(rand 3) + 1))"
+	pos="$(($(rand 7) + 1))"
 
 	# if we selected an non-empty tile, do it again until we select an empty one
 	while eval test \${$pos} -ne 0; do
-		pos="$(($(rand 3) * 4 + $(rand 3) + 1 ))"
+		pos="$(($(rand 7) + 1))"
 	done
 
 	# select value, 2 or 4
