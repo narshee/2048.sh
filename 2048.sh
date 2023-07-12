@@ -24,6 +24,7 @@ help() {
 
 Movement: wasd, hjkl, arrow keys, 8462 & ENTER
 Reset: r & ENTER
+Quit: q & ENTER
 Press a key for a direction and ENTER
 You can press multiple keys,
 but only the last pressed key is used'
@@ -112,7 +113,7 @@ populate_tile() {
 	pos="$(($(rand 15) + 1))"
 
 	# if we selected an non-empty tile, do it again until we select an empty one
-	while eval test \${$pos} -ne 0; do
+	while eval [ \${$pos} -ne 0 ]; do
 		pos="$(($(rand 15) + 1))"
 	done
 
@@ -125,11 +126,10 @@ populate_tile() {
 }
 
 print() {
-	# print "$score" "$@"
+	# print "$@"
 	# it prints the score and all tiles
 
-	echo "score: $1"
-	shift
+	echo "score: $score"
 	line=''
 
 	n=1
@@ -566,12 +566,13 @@ it can be replaced with another rng file'
 	exit 1
 fi
 
+
 main() {
 	setup_terminal
 
 	score=0
 	set $(init)
-	print "$score" "$@"
+	print "$@"
 
 	moves=0
 	while read -r input; do
@@ -604,13 +605,13 @@ main() {
 
 				score=0
 				set $(init)
-				print "$score" "$@"
+				print "$@"
 
 				moves=0
 				continue
 				;;
 			q)
-				exit_program "$score" "$@"
+				exit_program
 				;;
 			*)
 				clean_term
@@ -621,15 +622,14 @@ main() {
 		clean_term
 
 		set $(populate_tile "$@")
-		print "$score" "$@"
+		print "$@"
 		moves="$((moves + 1))"
 
 		# end game
 		return_vars=$(check_game_state "$@")
 		if [ "${#return_vars}" -ne 0 ]; then
 			echo "$return_vars"
-			#~ echo "moves: $moves"
-			exit_program "$score" "$@"
+			exit_program
 		fi
 	done
 }
