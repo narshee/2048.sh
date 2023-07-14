@@ -3,9 +3,7 @@
 
 # relevant throughout
 # shellcheck disable=SC2046
-# shellcheck disable=SC1083
-	# n=13; 'eval \${$n}' expands to ${13}
-	# braces '{', '}' are needed for multi-digit positional parameter
+	# word splitting is required for 'set' to work
 # shellcheck disable=SC2294
 	# 'eval "$@"' is used for removing leading spaces
 
@@ -92,7 +90,7 @@ populate_tile() {
 	# we want to set one tile to 2 or 4
 
 	# check if even a tile is unpopulated
-	if [ $(check_populated "$@") -eq 1 ]; then
+	if [ "$(check_populated "$@")" -eq 1 ]; then
 		echo "$@"
 		return
 	fi
@@ -129,9 +127,9 @@ print() {
 		if [ "$power" -eq 1 ]; then
 			if [ "$color" -eq 1 ]; then
 				if [ "$i" -eq 0 ]; then
-					line="$line"$(printf '\033[7m\033[38;5;%dm    ' "$((i + 5))")
+					line="$line""$(printf '\033[7m\033[38;5;%dm    ' "$((i + 5))")"
 				else
-					line="$line"$(printf '\033[7m\033[38;5;%dm%4d' "$((i + 5))" "$((1 << i))")
+					line="$line""$(printf '\033[7m\033[38;5;%dm%4d' "$((i + 5))" "$((1 << i))")"
 				fi
 			else
 				if [ "$i" -ne 0 ]; then
@@ -142,12 +140,12 @@ print() {
 		else
 			if [ "$color" -eq 1 ]; then
 				if [ "$i" -eq 0 ]; then
-					line="$line"$(printf '\033[7m\033[38;5;%dm  ' "$((i + 5))")
+					line="$line""$(printf '\033[7m\033[38;5;%dm  ' "$((i + 5))")"
 				else
-					line="$line"$(printf '\033[7m\033[38;5;%dm%2d' "$((i + 5))" "$i")
+					line="$line""$(printf '\033[7m\033[38;5;%dm%2d' "$((i + 5))" "$i")"
 				fi
 			else
-				line="$line"$(printf '%-3d' "$i")
+				line="$line""$(printf '%-3d' "$i")"
 			fi
 		fi
 
@@ -171,7 +169,7 @@ check_game_over() {
 	# echo 1 is game over
 
 	# if not all tiles are populated, the game is not over
-	if [ $(check_populated "$@") -eq 0 ]; then
+	if [ "$(check_populated "$@")" -eq 0 ]; then
 		echo 0
 		return
 	fi
@@ -221,7 +219,7 @@ check_game_state() {
 	done
 
 	# check if game is over
-	if [ $(check_game_over "$@") -eq 1 ]; then
+	if [ "$(check_game_over "$@")" -eq 1 ]; then
 		echo 'game over'
 	fi
 }
@@ -670,7 +668,7 @@ main() {
 		moves="$((moves + 1))"
 
 		# end game
-		return_vars=$(check_game_state "$@")
+		return_vars="$(check_game_state "$@")"
 		if [ "$return_vars" ]; then
 			echo "$return_vars in $moves moves"
 			save_highscore
