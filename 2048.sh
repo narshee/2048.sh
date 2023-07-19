@@ -62,6 +62,8 @@ rewrite_pos_para() {
 		if [ "$n" -eq "$pos" ]; then
 			array="$array $value"
 		else
+			# n=13; 'eval \${$n}' expands to ${13}
+			# braces '{', '}' are needed for multi-digit positional parameter
 			array="$array \${$n}"
 		fi
 		n="$((n + 1))"
@@ -107,7 +109,7 @@ populate_tile() {
 	val="$(($(rand 1) + 1))"
 
 	# change "$@"
-	set $(rewrite_pos_para "$pos" "$val" "$@")
+	set -- $(rewrite_pos_para "$pos" "$val" "$@")
 	echo "$@"
 }
 
@@ -241,9 +243,9 @@ move_up() {
 				# move tile if it is not 0
 				else
 					# copy value to new tile
-					set $(eval rewrite_pos_para "$n" "\${$((n + i))}" "$@")
+					set -- $(eval rewrite_pos_para "$n" "\${$((n + i))}" "$@")
 					# set old tile to 0
-					set $(rewrite_pos_para "$((n + i))" 0 "$@")
+					set -- $(rewrite_pos_para "$((n + i))" 0 "$@")
 					break
 				fi
 			done
@@ -267,9 +269,9 @@ move_up() {
 				# increase score
 				score="$((score + (1 << (val + 1))))"
 				# increase value of tile
-				set $(rewrite_pos_para "$n" $((val + 1)) "$@")
+				set -- $(rewrite_pos_para "$n" $((val + 1)) "$@")
 				# set old tile to 0
-				set $(rewrite_pos_para "$((n + 4))" 0 "$@")
+				set -- $(rewrite_pos_para "$((n + 4))" 0 "$@")
 
 				# move all non-empty tiles below the merged merged one up
 				if [ "$n" -le 8 ]; then
@@ -284,9 +286,9 @@ move_up() {
 							# move tile if it is not 0
 							else
 								# copy value to new tile
-								set $(eval rewrite_pos_para "$((n + i - 4))" "\${$((n + i))}" "$@")
+								set -- $(eval rewrite_pos_para "$((n + i - 4))" "\${$((n + i))}" "$@")
 								# set old tile to 0
-								set $(rewrite_pos_para "$((n + i))" 0 "$@")
+								set -- $(rewrite_pos_para "$((n + i))" 0 "$@")
 							fi
 						done
 					fi
@@ -312,8 +314,8 @@ move_down() {
 				if eval [ "\${$((n - i))}" -eq 0 ]; then
 					i="$((i + 4))"
 				else
-					set $(eval rewrite_pos_para "$n" "\${$((n - i))}" "$@")
-					set $(rewrite_pos_para "$((n - i))" 0 "$@")
+					set -- $(eval rewrite_pos_para "$n" "\${$((n - i))}" "$@")
+					set -- $(rewrite_pos_para "$((n - i))" 0 "$@")
 					break
 				fi
 			done
@@ -331,8 +333,8 @@ move_down() {
 			if eval [ "\${$((n - 4))}" -eq "\${$n}" ]; then
 				eval val="\${$n}"
 				score="$((score + (1 << (val + 1))))"
-				set $(rewrite_pos_para "$n" $((val + 1))  "$@")
-				set $(rewrite_pos_para "$((n - 4))" 0 "$@")
+				set -- $(rewrite_pos_para "$n" $((val + 1))  "$@")
+				set -- $(rewrite_pos_para "$((n - 4))" 0 "$@")
 
 				# move all non-empty tiles above the merged merged one down
 				if [ "$n" -gt 8 ]; then
@@ -342,8 +344,8 @@ move_down() {
 							if eval [ "\${$((n - i))}" -eq 0 ]; then
 								i="$((i + 4))"
 							else
-								set $(eval rewrite_pos_para "$((n - i + 4))" "\${$((n - i))}" "$@")
-								set $(rewrite_pos_para "$((n - i))" 0 "$@")
+								set -- $(eval rewrite_pos_para "$((n - i + 4))" "\${$((n - i))}" "$@")
+								set -- $(rewrite_pos_para "$((n - i))" 0 "$@")
 							fi
 						done
 					fi
@@ -380,9 +382,9 @@ move_left() {
 					# move tile if it is not 0
 					else
 						# copy value to new tile
-						set $(eval rewrite_pos_para "$((c + r))" "\${$((c + r + i))}" "$@")
+						set -- $(eval rewrite_pos_para "$((c + r))" "\${$((c + r + i))}" "$@")
 						# set old tile to 0
-						set $(rewrite_pos_para "$((c + r + i))" 0 "$@")
+						set -- $(rewrite_pos_para "$((c + r + i))" 0 "$@")
 						break
 					fi
 				done
@@ -413,9 +415,9 @@ move_left() {
 					# increase score
 					score="$((score + (1 << (val + 1))))"
 					# increase value of tile
-					set $(rewrite_pos_para "$((c + r))" $((val + 1))  "$@")
+					set -- $(rewrite_pos_para "$((c + r))" $((val + 1))  "$@")
 					# set old tile to 0
-					set $(rewrite_pos_para "$((c + r + 1))" 0 "$@")
+					set -- $(rewrite_pos_para "$((c + r + 1))" 0 "$@")
 
 					# move all non-empty tiles right of the merged merged one left
 					if [ "$r" -le 2 ]; then
@@ -425,8 +427,8 @@ move_left() {
 								if eval [ "\${$((c + r + i))}" -eq 0 ]; then
 									i="$((i + 1))"
 								else #move if tile is not 0
-									set $(eval rewrite_pos_para "$((c + r + i - 1))" "\${$((c + r + i))}" "$@")
-									set $(rewrite_pos_para "$((c + r + i))" 0 "$@")
+									set -- $(eval rewrite_pos_para "$((c + r + i - 1))" "\${$((c + r + i))}" "$@")
+									set -- $(rewrite_pos_para "$((c + r + i))" 0 "$@")
 								fi
 							done
 						fi
@@ -457,8 +459,8 @@ move_right() {
 					if eval [ "\${$((c + r - i))}" -eq 0 ]; then
 						i="$((i + 1))"
 					else
-						set $(eval rewrite_pos_para "$((c + r))" "\${$((c + r - i))}" "$@")
-						set $(rewrite_pos_para "$((c + r - i))" 0 "$@")
+						set -- $(eval rewrite_pos_para "$((c + r))" "\${$((c + r - i))}" "$@")
+						set -- $(rewrite_pos_para "$((c + r - i))" 0 "$@")
 						break
 					fi
 				done
@@ -481,8 +483,8 @@ move_right() {
 				if eval [ "\${$((c + r - 1))}" -eq "\${$((c + r))}" ]; then
 					eval val="\${$((c + r))}"
 					score="$((score + (1 << (val + 1))))"
-					set $(rewrite_pos_para "$((c + r))" $((val + 1))  "$@")
-					set $(rewrite_pos_para "$((c + r - 1))" 0 "$@")
+					set -- $(rewrite_pos_para "$((c + r))" $((val + 1))  "$@")
+					set -- $(rewrite_pos_para "$((c + r - 1))" 0 "$@")
 
 					# move all non-empty tiles left of the merged merged one right
 					if [ "$((c + r - 2))" -ge 1 ]; then
@@ -492,8 +494,8 @@ move_right() {
 								if eval [ "\${$((c + r - i))}" -eq 0 ]; then
 									i="$((i + 1))"
 								else
-									set $(eval rewrite_pos_para "$((c + r - i + 1))" "\${$((c + r - i))}" "$@")
-									set $(rewrite_pos_para "$((c + r - i))" 0 "$@")
+									set -- $(eval rewrite_pos_para "$((c + r - i + 1))" "\${$((c + r - i))}" "$@")
+									set -- $(rewrite_pos_para "$((c + r - i))" 0 "$@")
 								fi
 							done
 						fi
@@ -590,10 +592,10 @@ check_dev_random() {
 init_tiles() {
 	# set init
 
-	set 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	set -- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
-	set $(populate_tile "$@")
-	set $(populate_tile "$@")
+	set -- $(populate_tile "$@")
+	set -- $(populate_tile "$@")
 
 	echo "$@"
 }
@@ -618,7 +620,7 @@ main() {
 	handle_options "$@"
 	check_dev_random
 
-	set $(init_tiles)
+	set -- $(init_tiles)
 	init "$@"
 
 	while read -r input; do
@@ -627,27 +629,27 @@ main() {
 		# "${input#"${input%?}"}" just keeps last char
 		case "${input#"${input%?}"}" in
 			w | A | k | 8)
-				set $(move_up "$@")
+				set -- $(move_up "$@")
 				score="$((score + $1))"
 				shift
 				;;
 			a | D | h | 4)
-				set $(move_left "$@")
+				set -- $(move_left "$@")
 				score="$((score + $1))"
 				shift
 				;;
 			s | B | j | 2)
-				set $(move_down "$@")
+				set -- $(move_down "$@")
 				score="$((score + $1))"
 				shift
 				;;
 			d | C | l | 6)
-				set $(move_right "$@")
+				set -- $(move_right "$@")
 				score="$((score + $1))"
 				shift
 				;;
 			r)
-				set $(init_tiles)
+				set -- $(init_tiles)
 				init "$@"
 				continue
 				;;
@@ -661,7 +663,7 @@ main() {
 				;;
 		esac
 
-		set $(populate_tile "$@")
+		set -- $(populate_tile "$@")
 		print "$@"
 		clean_term
 		score_prev="$score"
